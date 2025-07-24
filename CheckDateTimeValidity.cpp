@@ -1,46 +1,25 @@
+enum class DateFailReason {
+    _IS_TOO_SMALL   = 1 << 0, // 1
+    _IS_TOO_BIG     = 1 << 1, // 2
+    _YEAR           = 1 << 2, // 4
+    _MONTH          = 1 << 3, // 8
+    _DAY            = 1 << 4, // 16
+    _HOUR           = 1 << 5, // 32 
+    _MINUTE         = 1 << 6, // 64
+    _SECOND         = 1 << 7 // 128
+};
+
 void CheckDateTimeValidity(const DateTime& dt) {
-    if (dt.year < 1) {
-        throw domain_error("year is too small"s);
-    }
-    if (dt.year > 9999) {
-        throw domain_error("year is too big"s);
-    }
 
-    if (dt.month < 1) {
-        throw domain_error("month is too small"s);
-    }
-    if (dt.month > 12) {
-        throw domain_error("month is too big"s);
-    }
-
+    array date = {dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second};
     const bool is_leap_year = (dt.year % 4 == 0) && !(dt.year % 100 == 0 && dt.year % 400 != 0);
     const array month_lengths = {31, 28 + is_leap_year, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    array date_limit = {9999, 12, month_lengths[dt.month - 1], 23, 59, 59};
+    int result{0};
 
-    if (dt.day < 1) {
-        throw domain_error("day is too small"s);
-    }
-    if (dt.day > month_lengths[dt.month - 1]) {
-        throw domain_error("day is too big"s);
-    }
-
-    if (dt.hour < 0) {
-        throw domain_error("hour is too small"s);
-    }
-    if (dt.hour > 23) {
-        throw domain_error("hour is too big"s);
-    }
-
-    if (dt.minute < 0) {
-        throw domain_error("minute is too small"s);
-    }
-    if (dt.minute > 59) {
-        throw domain_error("minute is too big"s);
-    }
-
-    if (dt.second < 0) {
-        throw domain_error("second is too small");
-    }
-    if (dt.second > 59) {
-        throw domain_error("second is too big"s);
+    for (int i = 0; i < 6; ++i) {
+        if (date[i] < 1) {result = 1 + 1 << (i + 2);}
+        if (date[i] > date_limit) {result = 2 + 1 << (i + 2);}
+        if (!result) {throw static_cast<DateFailReason>(result);}
     }
 }
